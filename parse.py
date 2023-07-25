@@ -21,6 +21,9 @@ def sheet_exists(excel_filename, sheetname): # Returns boolean if a sheet exists
     except:
         return False
 
+def get_length_of_longest_list(lst):
+    return max(len(x) for x in lst)
+
 
 def xlsx(dataframe, excel_filename, sheetname): # Exports a dataframe to xlsx; either make a new xlsx file and a new sheet for the dataframe, or just make a new sheet into existing xlsx and add the dataframe there   
     path = excel_filename + ".xlsx"
@@ -35,6 +38,7 @@ def xlsx(dataframe, excel_filename, sheetname): # Exports a dataframe to xlsx; e
 #TODO compile everything into one .py file so import statements or pandas install etc is unneeded
 #TODO implement main loop with prompts IE type stop at any time to stop, type back at any time to go back, more print statements to give more feedback about what was done.. etc.
 
+
 def abort(userinput): 
     if (userinput == "e"): # Exit
         exit()
@@ -44,7 +48,61 @@ def abort(userinput):
         return()
 
 
+def parse_by_number(txt_filename, query):
+    data = [] # A list-of-lists that will collect data and be used to initialize a dataframe when ready
+    numOfColumns = 0 # Number of columns for the future dataframe
+    columnBase = ["Number", "Site", "Result", "Test Name"] # Every test number has at least these rows, but some have more
+    check = 0 # Flag to see if test number is found/the data is then successfully exported to xlsx
+    
+    with open(txt_filename + ".txt") as reader: # Open the file for reading
+        for line in reader: # Process the file line by line
+            if line.isspace() == False: # Ignore completely blank lines
+                splitline = line.split() # Split each individual line into a list with whitespace as the delimiter
+                if (query == splitline[0]): # The first element of the line should be the test number / the forth element of the line should be the test name
+                    if check == 0:
+                        check = 1 # At least one instance of the data has been found
+                    if numOfColumns == 0:
+                        numOfColumns = len(splitline) # Every instance of a test number should have the same number of columns
+                    data.append(splitline) # Each element in data is going to be a row in the future dataframe
+                    
+    # Leave the loop and file reader; no longer need to process the file, all relevant data is now stored in the data list
+    extraColumns = numOfColumns - 4
+    if (extraColumns > 0): # This means it's going to be more columns, something like: Number  Site Result   Test Name       Pin      Channel Low            Measured       High..... etc
+        for i in range(extraColumns):
+            columnBase.append(i+1) # The extra columns are going to be titled in the dataframe from 1 to N where N is the number of columns beyond the standard 4th column of "Test Name"
+    
+    df = pd.DataFrame(data, columns=columnBase) # Generate the dataframe to export to excel
+    return df, check
 
+
+def parse_by_name(txt_filename, query):
+    data = [] # A list-of-lists that will collect data and be used to initialize a dataframe when ready
+    numOfColumns = 0 # Number of columns for the future dataframe
+    columnBase = ["Number", "Site", "Result", "Test Name"] # Every test number has at least these rows, but some have more
+    check = 0 # Flag to see if test number is found/the data is then successfully exported to xlsx
+    with open(txt_filename + ".txt") as reader: # Open the file for reading
+        for line in reader: # Process the file line by line
+            if line.isspace() == False: # Ignore completely blank lines
+                splitline = line.split() # Split each individual line into a list with whitespace as the delimiter
+                if (query in splitline):
+                    if check == 0:
+                        check = 1 # At least one instance of the data has been found
+                    data.append(splitline) # Each element in data is going to be a row in the future dataframe
+                    
+	# Leave the loop and file reader; no longer need to process the file, all relevant data is now stored in the data list
+    numOfColumns = get_length_of_longest_list(data)
+    extraColumns = numOfColumns - 4
+    if (extraColumns > 0): # This means it's going to be more columns, something like: Number  Site Result   Test Name       Pin      Channel Low            Measured       High..... etc
+        for i in range(extraColumns):
+            columnBase.append(i+1) # The extra columns are going to be titled in the dataframe from 1 to N where N is the number of columns beyond the standard 4th column of "Test Name"
+            
+    df = pd.DataFrame(data, columns=columnBase) # Generate the dataframe to export to excel
+    df.fillna("NA")
+    print(df)      
+    
+#parse_by_name("char", "703701") TODO look at this, something like this is viable but probably slightly more resource intensive than parse_by_number? so probably keep both methods?? but examine later
+# TODO ^ Note the above should work with infinite number of columns in any scenario as long as the base columns: number  site  result  testname, are there 
+parse_by_name("char", "por_char_F_min")
 
 def start(xlsx_path=None, search_by_name=False):
     
@@ -83,31 +141,10 @@ def start(xlsx_path=None, search_by_name=False):
         xlsx_sheet = query # Set the default sheet name to be the test number
         
     try:
-        
+    
         if search_by_name == False: # Procedure if searching by test NUMBER
-            data = [] # A list-of-lists that will collect data and be used to initialize a dataframe when ready
-            numOfColumns = 0 # Number of columns for the future dataframe
-            columnBase = ["Number", "Site", "Result", "Test Name"] # Every test number has at least these rows, but some have more
-            check = 0 # Flag to see if test number is found/the data is then successfully exported to xlsx
+            df, check = parse_by_number(txt_filename, query)
             
-            with open(txt_filename + ".txt") as reader: # Open the file for reading
-                for line in reader: # Process the file line by line
-                    if line.isspace() == False: # Ignore completely blank lines
-                        splitline = line.split() # Split each individual line into a list with whitespace as the delimiter
-                        if (query == splitline[0]): # The first element of the line should be the test number / the forth element of the line should be the test name
-                            if check == 0:
-                                check = 1 # At least one instance of the data has been found
-                            if numOfColumns == 0:
-                                numOfColumns = len(splitline) # Every instance of a test number should have the same number of columns
-                            data.append(splitline) # Each element in data is going to be a row in the future dataframe
-                            
-            # Leave the loop and file reader; no longer need to process the file, all relevant data is now stored in the data list
-            extraColumns = numOfColumns - 4
-            if (extraColumns > 0): # This means it's going to be more columns, something like: Number  Site Result   Test Name       Pin      Channel Low            Measured       High..... etc
-                for i in range(extraColumns):
-                    columnBase.append(i+1) # The extra columns are going to be titled in the dataframe from 1 to N where N is the number of columns beyond the standard 4th column of "Test Name"
-            
-            df = pd.DataFrame(data, columns=columnBase) # Generate the dataframe to export to excel
         
         if (check != 1):
             retry = input("Item not found. Type y to run again or anything else to exit: ")
@@ -154,7 +191,7 @@ def start(xlsx_path=None, search_by_name=False):
 #TODO ask if it's a good idea to mass dump all the test numbers into sheets with their respective numbers into one giant excel file?
 
 
-start()
+#start()
 
 
 
