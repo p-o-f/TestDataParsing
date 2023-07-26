@@ -271,7 +271,15 @@ def start(xlsx_path=None, search_by_name=False):
 
 #TODO doc strings and documentation!
 
-start(None, True)
+#start(None, True)
+
+
+
+start = time.time()
+#print(parse_by_name("char", "1000")) # 0.03791522979736328 sec
+#print(parse_by_number("char", "1000")) # 0.037004947662353516 sec
+end = time.time()
+print(end-start)
 
 
 
