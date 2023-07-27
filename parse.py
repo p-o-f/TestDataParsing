@@ -205,7 +205,9 @@ def start(xlsx_path=None):
             return() # Exit
     except:
         print("Error. One of the supplied parameters may have been incorrect? Retrying...\n")
-        delete_files() # Delete any .xlsx files that were created in the current directory
+        delete = input("Do you want to delete any .xlsx files that have been created so far in the current directory? Type y to do so or anything else to continue: ")
+        if (delete == "y"):
+            delete_files() # Delete any .xlsx files that were created in the current directory
         start() # Try again
 
 
