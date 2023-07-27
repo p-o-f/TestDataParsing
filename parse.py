@@ -1,5 +1,7 @@
 import pandas as pd
 import os
+import sys
+from sys import exit
 
 
 
@@ -145,6 +147,7 @@ def start(xlsx_path=None):
     
     linebreak = "--------------------------------------------------------------------------------------------------------------" # Just for formatting to terminal
     print("\nFollow the provided prompts. At any point, type e to exit or r to re-enter parameters.")
+    print("\nPLEASE NOTE if you type e to exit you must restart the .exe file to run the script.")
     print(linebreak)
     
     while True: # Prevent searching for a blank file
@@ -194,7 +197,7 @@ def start(xlsx_path=None):
             
             add_more = input("\nWould you like to export anything else? Type y to do so or anything else to exit: ")
             if (add_more == "y"): 
-                same_sheet = input("Would you like to export to the same excel file in a new sheet? Type y to do so or anything else to change the target excel sheet to export to.")
+                same_sheet = input("Would you like to export to the same excel file in a new sheet? Type y to do so or anything else to change the target excel sheet to export to: ")
                 if (same_sheet == "y"):
                     start(xlsx_path) # Recursively add into the same xlsx file, but in a new sheet 
                 else:
@@ -211,4 +214,3 @@ print("Data Parsing Script: .txt to .xlsx")
 print("Please have relevant .txt files in the same directory as this script, or this script will not be able to read them!")
 print("If you want to add sheets to an existing .xlsx file or multiple existing .xlsx files, have all relevant .xlsx files in the same directory as well.")
 start()
-
