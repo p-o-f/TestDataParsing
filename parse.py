@@ -1,13 +1,15 @@
 import pandas as pd
 import os
+import datetime
 import sys
 from sys import exit
+from datetime import timedelta
 
 
 
 def delete_files(directory = os.getcwd()): 
     """
-    Deletes all the .xlsx files created within the specified directory.
+    Deletes all the .xlsx files modified in the last one hour within the specified directory.
 
     This will always default to the current directory unless a parameter is specified.
 
@@ -22,8 +24,13 @@ def delete_files(directory = os.getcwd()):
     files = os.listdir(directory)
     for file in files:
         if file.endswith(".xlsx"):
-            os.remove(os.path.join(directory, file))
-           
+            timestamp = os.path.getmtime(file) # File modification check
+            datestamp = datetime.datetime.fromtimestamp(timestamp) # Convert timestamp into DateTime object
+            current_time = datetime.datetime.now() # Using now() to get current time
+            time_difference = current_time - datestamp # Get time delta
+            if (time_difference.total_seconds() <= 3600): # 3600 seconds in one hour
+                os.remove(os.path.join(directory, file)) # Delete files
+
 
 
 def sheet_exists(excel_filename, sheetname): 
@@ -163,7 +170,7 @@ def start(xlsx_path=None):
             abort(xlsx_path)
             if xlsx_path != "" and xlsx_path.isspace() is False:
                 break
-    print(linebreak)
+        print(linebreak)
     
     while True: # Do not allow exporting to same sheet; blank/whitespace will still pass this and continue to use the default sheet name
         xlsx_sheet = input("\n(Optional, may leave this blank) Enter the sheet name to export to: ")
@@ -205,9 +212,9 @@ def start(xlsx_path=None):
             return() # Exit
     except:
         print("Error. One of the supplied parameters may have been incorrect? Retrying...\n")
-        delete = input("Do you want to delete any .xlsx files that have been created so far in the current directory? Type y to do so or anything else to continue: ")
-        if (delete == "y"):
-            delete_files() # Delete any .xlsx files that were created in the current directory
+        delete = input("Do you want to delete any .xlsx files that have been modified so far in the last hour in the current directory? Type YES! (case sensitive) to do so or anything else to continue: ")
+        if (delete == "YES!"):
+            delete_files() # Delete any .xlsx files that were modified in the last hour in the current directory
         start() # Try again
 
 
