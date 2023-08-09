@@ -119,7 +119,10 @@ def look_for_data(txt_filename, query, deleteNoneType = True):
     DataFrame: A dataframe that will be exported to excel containing all relevant data that was searched for
 
     """
-    
+    allFlag = 0
+    if query == "ALL": # Use both "PASS" and "FAIL" as queries
+        allFlag = 1
+        
     data = [] # A list-of-lists that will collect data and be used to initialize a large dataframe when ready
     numOfColumns = 0 # Number of columns for the future dataframe
     columnBase = ["Number", "Site", "Result", "Test Name"] # Every test number has at least these rows, but some have more
@@ -128,7 +131,14 @@ def look_for_data(txt_filename, query, deleteNoneType = True):
         for line in reader: # Process the file line by line
             if (line.isspace() is False): # Ignore completely blank lines
                 splitline = line.split() # Split each individual line into a list with whitespace as the delimiter
-                if (query in splitline): # Check if an EXACT match for query is in the line (i.e. 10000 should return false if checking for 100)
+                queryPresent = False
+                if (allFlag == 0):
+                    if (query in splitline):
+                        queryPresent = True
+                else:
+                    if ("PASS" in splitline or "FAIL" in splitline):
+                        queryPresent = True
+                if (queryPresent is True): # Check if an EXACT match for query is in the line (i.e. 10000 should return false if checking for 100)
                     if (check == 0):
                         check = 1 # Update check to reflect that at least one instance of the data has been found
                     data.append(splitline) # Each list element in data is going to be a row in the future dataframe
@@ -180,12 +190,12 @@ def start(xlsx_path=None):
     print(linebreak)
     
     while True: # Prevent searching for nothing or for whitespace
-        query = input("\nEnter the term you would like to search for (test number, test name, PASS, FAIL): ")
+        query = input("\nEnter the term you would like to search for (test number, test name, PASS, FAIL, ALL): ")
         abort(query)
         if query != "" and query.isspace() is False:
             break
     print(linebreak)
-    
+
     if (xlsx_sheet.isspace()) or (xlsx_sheet == ""): # Default sheet name/fail safe
         xlsx_sheet = query # Set the default sheet name to be the item being searched for
         
